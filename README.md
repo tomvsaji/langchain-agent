@@ -44,6 +44,10 @@ tests/
 4. The chain invokes the LLM (demo mock by default) with full context
 5. The response and user message are persisted to SQLite for future turns
 
+## Prerequisites
+
+- Python 3.10+
+
 ## Setup
 
 ```bash
@@ -73,6 +77,35 @@ python -m pytest tests/ -v
 ```
 
 All tests use temporary directories and are fully isolated — no persistent state is required.
+
+## Quickstart Demo
+
+After starting the backend, try this end-to-end flow with `curl`:
+
+```bash
+# 1. Seed the knowledge base with sample documents
+curl -s -X POST http://localhost:8000/documents/seed | python -m json.tool
+
+# 2. Start a chat — a session is created automatically
+curl -s -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What is retrieval-augmented generation?"}' | python -m json.tool
+
+# 3. Continue the conversation using the session_id from step 2
+curl -s -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "How does ChromaDB help with that?", "session_id": "<SESSION_ID>"}' | python -m json.tool
+
+# 4. View the full conversation history
+curl -s http://localhost:8000/sessions/<SESSION_ID>/messages | python -m json.tool
+
+# 5. Search the knowledge base directly
+curl -s -X POST http://localhost:8000/documents/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "vector database", "top_k": 2}' | python -m json.tool
+```
+
+Or open the Streamlit UI at `http://localhost:8501` for an interactive chat experience with session management and a knowledge base panel in the sidebar.
 
 ## API Endpoints
 
